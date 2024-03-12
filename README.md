@@ -24,3 +24,9 @@ Code used to re-calibrate the LUE specifically for crop and grassland. The code 
 
 Please note that this is just some example source code to perform these tasks. However, the code needs some local stored datasets to enable processing. 
 
+
+""""""
+DOI
+"""""
+[![DOI](https://zenodo.org/badge/770859389.svg)](https://zenodo.org/doi/10.5281/zenodo.10808443)
+
