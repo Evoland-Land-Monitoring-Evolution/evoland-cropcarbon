@@ -1,0 +1,7 @@
+setup.py
+src/cropcarbon/__init__.py
+src/cropcarbon/_version.py
+src/cropcarbon.egg-info/PKG-INFO
+src/cropcarbon.egg-info/SOURCES.txt
+src/cropcarbon.egg-info/dependency_links.txt
+src/cropcarbon.egg-info/top_level.txt
