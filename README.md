@@ -11,12 +11,14 @@ The code can be found under:  scripts/gpp/ref/ICOS_prep_data.py
 """"""
 DATA EXTRACTION
 """"""
+
 Code used to extract all necessary EO and ancillary datasets for the ICOS flux sites.
 These datasets are needed to allow satellite-based GPP estimates. The code can be found under scripts/gpp/extractions/get_EO_data_ICOS.py
 
 """"""
 LUE calibration
 """"""
+
 Code used to re-calibrate the LUE specifically for crop and grassland. The code can be found under scripts/gpp/calibration/LUE_calibr.py
 
 
