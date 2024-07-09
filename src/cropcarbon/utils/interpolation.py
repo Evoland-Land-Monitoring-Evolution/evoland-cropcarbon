@@ -10,6 +10,7 @@ import pandas as pd
 import xarray as xr
 import numpy as np
 
+
 def satio_interpolation(df: pd.DataFrame, sensor: str):
     # convert first to xarray
     band_names = list(df.columns)

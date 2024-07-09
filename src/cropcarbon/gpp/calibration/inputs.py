@@ -9,10 +9,13 @@ import os
 import glob
 import numpy as np
 import datetime
+import xarray as xr
 
 from cropcarbon.utils.timeseries import aggregate_TS
 from cropcarbon.utils.interpolation import satio_interpolation
 from cropcarbon.utils.plotting import plot_cal_TS
+from fusets import WhittakerTransformer
+
 
 def compile_ref(df, priority_var = {1: 'GPP_NT_VUT_MEAN', 
                                     2: 'GPP_NT_CUT_MEAN'}):
@@ -148,7 +151,30 @@ def compile_data_calibration(site, settings,
                 data_interpol = satio_interpolation(data_aggreg, sensor)
                 # clip the data to the desired period
                 data_final = data_interpol.loc[datetime.datetime.strptime(start, '%Y-%m-%d').date(): 
-                                             datetime.datetime.strptime(end, '%Y-%m-%d').date()]
+                    datetime.datetime.strptime(end, '%Y-%m-%d').date()]
+            elif interpol_method == "fuseTS":
+                # create xarray from data aggr
+                ds_bands = xr.DataArray(data=data_aggreg.values[:,0],
+                                        dims=['t'])
+                # assign coords to it
+                # convert the time to datetime64
+                time_np64 = np.array([np.datetime64(item)
+                                      for item in data_aggreg.index])
+                ds_bands = ds_bands.assign_coords(t=time_np64)
+                data_interpol = WhittakerTransformer().fit_transform(ds_bands,
+                                                                     smoothing_lambda=100) # NOQA
+                # now convert it back to a pandas dataframe
+                data_interpol = pd.DataFrame(data_interpol.values,
+                                             columns=data_aggreg.columns,
+                                             index=data_aggreg.index)
+                # clip the data to the desired period
+                data_final = data_interpol.loc[datetime.datetime.strptime(start, '%Y-%m-%d').date(): 
+                    datetime.datetime.strptime(end, '%Y-%m-%d').date()]
+                
+                # convert negative values to 0
+                if dataset == 'S2_FAPAR':
+                    data_interpol[data_interpol < 0] = 0
+                
             else:
                 raise ValueError(f'INTERPOLATION METHOD {interpol_method} NOT YET SUPPORTED')
         else:

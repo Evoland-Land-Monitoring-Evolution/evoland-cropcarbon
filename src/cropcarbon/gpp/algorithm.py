@@ -12,7 +12,7 @@ ELUEc: Light use efficiency at optimum: kgDM/GJap
 Et: Normalized temperature effect (0-1)
 ECO2: Normalized CO2 fertilization effect (0-1)
 Eres: Fraction kept after omitted effects (1)
-Econv: Conversion factor from GDMP to GPP (0.045)
+Econv: Conversion factor from GDMP to GPP (0.05)
 
 """
 
@@ -21,7 +21,6 @@ import numpy as np
 import pandas as pd
 from cropcarbon.utils.timeseries import aggregate_TS
 from loguru import logger
-
 
 
 def Et(T12):
@@ -57,9 +56,9 @@ def Et(T12):
     # RESULTS
     return pTd
 
-def get_CO2_conc(year: int, dir_CO2_content: str,
-                 agg_method: str = 'year'):
-    df_CO2  = pd.read_csv(dir_CO2_content)
+
+def get_CO2_conc(year: int, dir_CO2_content: str):
+    df_CO2 = pd.read_csv(dir_CO2_content)
     # filter on the year
     df_CO2_year = df_CO2.loc[df_CO2.year == year]
     # take just the mean value within the year 
@@ -99,11 +98,15 @@ def Eco2(CO2conc, T12):
         lines = len(T12)
         samples = 0
         Km = np.zeros((lines), 'float')
-
-    else:
+    elif len(T12.shape) == 2:
         samples = len(T12[0])
         lines = len(T12)
         Km = np.zeros((lines, samples), 'float')
+    else:
+        samples_1 = T12.shape[1]
+        samples_2 = T12.shape[2]
+        lines = T12.shape[0]
+        Km = np.zeros((lines, samples_1, samples_2), 'float')
 
     Km[T1arrix] = A1 * np.exp(-Ea1 / (Rg * T12[T1arrix]))
     Km[T2arrix] = A2 * np.exp(-Ea2 / (Rg * T12[T2arrix]))
@@ -131,7 +134,7 @@ def GDMPtoDMP(GDMP, DMPfrac=0.5):
 
 def GDMP_max(arr_tmin_k, arr_tmax_k, arr_rad,
              f_CO2conc=405, f_RUE=2.54, 
-             f_Ec=0.48):
+             f_Ec=0.48, f_Eco2=None):
     '''
     General note    : all arrays should represent the same spatial grid
     arr_tmin        : Array containing the daily minimum values for each grid cell [K]
@@ -139,7 +142,8 @@ def GDMP_max(arr_tmin_k, arr_tmax_k, arr_rad,
     arr_rad         : Array containing shortwave incoming solar radiation for each grid cell [j/m2]
     CO2conc         : Constant value representing the atmospheric CO2 concentration of the period
     RUE             : Radiation Use Efficiency (expressed as kgDM/GJ PAR]
-    f_Ec              : Fraction of PAR in total shortwave
+    f_Ec            : Fraction of PAR in total shortwave
+    f_Eco2          : ECO2 factor if calc_ECO2 is False
     '''
 
     # Rescaling arrays:
@@ -150,7 +154,8 @@ def GDMP_max(arr_tmin_k, arr_tmax_k, arr_rad,
 
     # get first the value of each parameter needed
     f_Et = Et(arr_t12_k)
-    f_Eco2 = Eco2(f_CO2conc, arr_t12_k)
+    if f_Eco2 is None:
+        f_Eco2 = Eco2(f_CO2conc, arr_t12_k)
     GDMP_max = f_Ec * f_RUE * f_Eco2 * f_Et * arr_rad_u
 
     return GDMP_max
@@ -170,7 +175,7 @@ def GDMP_max_to_GDMP(arr_GDMP_max, arr_fapar,
     arr_GDMP = arr_GDMP_max * arr_fapar
 
     if unit == 2:
-        arr_GDMP = arr_GDMP * 0.45 * 0.1
+        arr_GDMP = arr_GDMP * 0.5 * 0.1
 
     if GDMPorDMP == 'GDMP':
         return arr_GDMP
@@ -205,7 +210,7 @@ def GDMP(arr_fapar, arr_tmin, arr_tmax, arr_rad,
                            f_Ec=f_Ec)
     arr_GDMP = arr_GDMPmax * arr_fapar
     if unit == 2:
-        arr_GDMP = arr_GDMP * 0.45 * 0.1
+        arr_GDMP = arr_GDMP * 0.5 * 0.1
 
     if GDMPorDMP == 'GDMP':
         return arr_GDMP

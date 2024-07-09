@@ -44,3 +44,6 @@ basefold_cal = r'/data/sigma/Evoland_GPP/cal'
 # the basefolder for the LUE calibration work
 basefold_LUE = r'/data/sigma/Evoland_GPP/cal/LUE'
 
+# the basefolder for the prototype work
+basefold_prototype = r'/data/sigma/Evoland_GPP/prototype'
+
